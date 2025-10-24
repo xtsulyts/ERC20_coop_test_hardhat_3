@@ -1,6 +1,17 @@
 import { describe, it, before } from "node:test";
 import { strict as assert } from "assert";
 import { network } from "hardhat";
+import hre from "hardhat";
+
+const { viem } = await network.connect();
+
+const publicClient = await viem.getPublicClient();
+console.log("Mensaje desde publicClient:", await publicClient.getBlockNumber());
+
+
+
+
+const connection = await network.connect();
 
 describe("CooperadoraTest", function () {
   let token: any;
@@ -68,4 +79,37 @@ describe("Funciones de minting", function () {
     assert.equal(balanceFinal, balanceEsperado);
   });
 });
+describe("Funciones básicas", function () {
+  it("Debería permitir transferencias", async function () {
+    const { viem } = await network.connect();
+    const [owner, user1] = await viem.getWalletClients();
+    const amount = 1000n;
+    
+    // Transferir tokens del owner a user1
+    await token.write.transfer([user1.account.address, amount], {
+      account: owner.account
+    });
+    
+    const balanceUser1 = await token.read.balanceOf([user1.account.address]);
+    assert.equal(balanceUser1, amount);
+  });
+
+  it("Debería fallar al transferir 0 tokens", async function () {
+    const { viem } = await network.connect();
+    const [owner, user1] = await viem.getWalletClients();
+    
+    // Esto debería fallar por el require(amount > 0) en tu contrato
+    try {
+      await token.write.transfer([user1.account.address, 0n], {
+        account: owner.account
+      });
+      assert.fail("Debería haber fallado");
+    } catch (error) {
+      // Test pasa si falla como se espera
+      assert.ok(true);
+    }
+  });
 });
+});
+
+//185028

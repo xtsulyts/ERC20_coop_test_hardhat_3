@@ -1,19 +1,20 @@
-import { describe, it, before } from "node:test";
+import { describe, it, beforeEach } from "node:test";
 import { strict as assert } from "assert";
 import { network } from "hardhat";
-
-//const connection = await network.connect();
 
 describe("CooperadoraTest", function () {
   let token: any;
   let owner: any;
   let user1: any;
+  let user2: any;
 
-  before(async function () {
+  beforeEach(async function () {
     const { viem } = await network.connect();
     const wallets = await viem.getWalletClients();
     owner = wallets[0];
     user1 = wallets[1];
+    user2 = wallets[2];
+  //console.log('Owner:', owner.addres)
 
     token = await viem.deployContract("CooperadoraTest");
   });
@@ -28,9 +29,39 @@ describe("CooperadoraTest", function () {
     assert.equal(nombre, "Cooperadora Test");
     assert.equal(simbolo, "COOP");
     assert.equal(supplyTotal, supplyEsperado);
+    console.log('Nombre del Token:', nombre);
+    console.log("Simbolo:", simbolo);
+    console.log('Suplly Total:', supplyTotal);
   });
 
- describe("Funciones de transferencia", function () {
+  
+  describe("Funciones básicas", function () {
+    it("Debería permitir transferencias", async function () {
+      const amount = 1000n;
+
+      // Transferir tokens del owner a user2 (cuenta limpia)
+      await token.write.transfer([user2.account.address, amount], {
+        account: owner.account,
+      });
+
+      const balanceUser2 = await token.read.balanceOf([user2.account.address]);
+      assert.equal(balanceUser2, amount);
+    });
+
+    it("Debería fallar al transferir 0 tokens", async function () {
+      try {
+        await token.write.transfer([user1.account.address, 0n], {
+          account: owner.account,
+        });
+        assert.fail("Debería haber fallado");
+      } catch (error: any) {
+        // Verificamos que efectivamente hubo un error, pero no el mensaje porque ya se probó en otro test
+        assert.ok(error);
+      }
+    });
+  });
+
+  describe("Funciones de transferencia", function () {
     it("Debería transferir tokens entre cuentas", async function () {
       const amount = 1000n;
       await token.write.transfer([user1.account.address, amount], {
@@ -48,20 +79,14 @@ describe("CooperadoraTest", function () {
         });
         assert.fail("Debería haber revertido");
       } catch (error: any) {
-        // Usamos error.details que contiene el mensaje de revert
         assert.match(error.details, /Amount must be greater than 0/);
       }
     });
   });
 
-  // });
-
   describe("Funciones de minting", function () {
     it("Debería permitir al owner hacer mint", async function () {
-      // ✅ Obtenemos el balance inicial primero
-      const balanceInicial = await token.read.balanceOf([
-        user1.account.address,
-      ]);
+      const balanceInicial = await token.read.balanceOf([user1.account.address]);
       const mintAmount = 500n;
 
       await token.write.mint([user1.account.address, mintAmount], {
@@ -75,37 +100,4 @@ describe("CooperadoraTest", function () {
     });
   });
 
-  describe("Funciones básicas", function () {
-    it("Debería permitir transferencias", async function () {
-      const { viem } = await network.connect();
-      const [owner, user1] = await viem.getWalletClients();
-      const amount = 1000n;
-
-      // Transferir tokens del owner a user1
-      await token.write.transfer([user1.account.address, amount], {
-        account: owner.account,
-      });
-
-      const balanceUser1 = await token.read.balanceOf([user1.account.address]);
-      assert.equal(balanceUser1, amount);
-    });
-
-    it("Debería fallar al transferir 0 tokens", async function () {
-      const { viem } = await network.connect();
-      const [owner, user1] = await viem.getWalletClients();
-
-      // Esto debería fallar por el require(amount > 0) en tu contrato
-      try {
-        await token.write.transfer([user1.account.address, 0n], {
-          account: owner.account,
-        });
-        assert.fail("Debería haber fallado");
-      } catch (error) {
-        // Test pasa si falla como se espera
-        assert.ok(true);
-      }
-    });
-  });
 });
-
-//185028

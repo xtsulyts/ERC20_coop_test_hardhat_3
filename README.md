@@ -20,8 +20,6 @@ Un token ERC-20 de prueba para la Cooperadora Escolar, construido con Hardhat 3 
 - **TypeScript** - Tipado estático
 - **OpenZeppelin** - Contratos seguros y auditados
 
-feat: implementar flujo completo de dApp Web3 con token ERC20 y frontend React
-
 ## Contrato Inteligente & Blockchain
 - Despliegue de token ERC20 CooperadoraTest con funcionalidad de minting
 - Suite completa de tests (Solidity + TypeScript)
@@ -53,4 +51,4 @@ feat: implementar flujo completo de dApp Web3 con token ERC20 y frontend React
 - Confirmación de responsividad UI y experiencia de usuario
 - Validación de conectividad de wallets y gestión de estado
 
-Este commit representa una aplicación Web3 completamente funcional que demuestra integración completa blockchain, desde desarrollo de contratos inteligentes hasta interfaz dApp para usuarios.
+Aplicación Web3 completamente funcional que demuestra integración completa blockchain, desde desarrollo de contratos inteligentes hasta interfaz dApp para usuarios.

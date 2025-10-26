@@ -51,7 +51,7 @@ describe("Funciones de transferencia", function () {
   });
 
   it("Debería fallar al transferir 0 tokens", async function () {
-    // ✅ CORREGIDO: Forma correcta de capturar el revert
+    // ✅ Forma correcta de capturar el revert
     try {
       await token.write.transfer([user1.account.address, 0n], {
         account: owner.account
@@ -65,7 +65,7 @@ describe("Funciones de transferencia", function () {
 
 describe("Funciones de minting", function () {
   it("Debería permitir al owner hacer mint", async function () {
-    // ✅ CORREGIDO: Obtenemos el balance inicial primero
+    // ✅ Obtenemos el balance inicial primero
     const balanceInicial = await token.read.balanceOf([user1.account.address]);
     const mintAmount = 500n;
     
@@ -79,6 +79,7 @@ describe("Funciones de minting", function () {
     assert.equal(balanceFinal, balanceEsperado);
   });
 });
+
 describe("Funciones básicas", function () {
   it("Debería permitir transferencias", async function () {
     const { viem } = await network.connect();

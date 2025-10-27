@@ -12,7 +12,7 @@ export const config = createConfig({
   transports: {
     [mainnet.id]: http(),
     [sepolia.id]: http(),
-    [hardhat.id]: http('http://localhost:8545'),
+    [hardhat.id]: http('http://127.0.0.1:8545'),
   },
 })
 

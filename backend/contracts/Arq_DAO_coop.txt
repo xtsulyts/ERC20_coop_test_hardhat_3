@@ -1,0 +1,62 @@
+FLUJO DE DESPLIEGUE CON TOKEN YA EXISTENTE:
+
+1. ✅ TOKEN ERC20 (YA DESPLEGADO)
+   - Address: 0x...
+   - Función: Representa cuotas sociales pagadas en fiat
+
+2. 🚀 DESPLEGAR TIMELOCK
+   - Input: minDelay (ej: 86400 = 24h)
+   - Output: addressTimelock
+   - Propósito: Seguridad en ejecución
+
+3. 🚀 DESPLEGAR COOPERADORA DAO  
+   - Inputs: 
+     * addressToken (ya existe)
+     * addressTimelock (recién desplegado)
+     * votingDelay: 1 bloque
+     * votingPeriod: 50400 bloques (~1 semana)
+     * quorum: 40%
+   - Output: addressDAO
+
+4. 🚀 DESPLEGAR TESORERIA SAFE
+   - Inputs:
+     * presidente (wallet presidente)
+     * addressDAO (recién desplegado) 
+     * gastoMaximoInicial (ej: 1 ETH en wei)
+   - Output: addressTesoreria
+
+5. ⚙️ CONFIGURACIÓN CRUCIAL (MÁS IMPORTANTE)
+   - Timelock.grantRole(PROPOSER_ROLE, addressDAO)
+   - Timelock.grantRole(EXECUTOR_ROLE, addressDAO)
+   - Timelock.revokeRole(executor, deployer) ← QUITARSE PERMISOS
+
+FLUJO OPERATIVO POST-DEPLOY:
+────────────────────────────
+
+1. PAGO FIAT (Fuera de blockchain)
+   - Padre paga cuota en efectivo/transferencia
+   - Presidente verifica pago
+
+2. MINT TOKENS (On-chain)  
+   - SoloPresidente.mint(padreAddress, cantidadTokens)
+   - Token balance aumenta → más poder de voto
+
+3. CREAR PROPUESTA
+   - Presidente.proponerGasto("Compra sillas", 0.5 ETH, proveedorAddress)
+   - Se crea proposalId en la DAO
+
+4. VOTACIÓN  
+   - Padres.votan(proposalId, true/false) con peso según tokens
+   - Período: 1 semana
+
+5. EJECUCIÓN (Si aprueba)
+   - Cualquiera.ejecutarProposal(proposalId)
+   - Timelock espera 24h → Tesorería envía ETH al proveedor
+
+CONFIGURACIÓN FINAL REQUERIDA:
+──────────────────────────────
+
+- Token debe tener función mint() restringida a presidente
+- Tesorería debe tener ETH para ejecutar propuestas  
+- Timelock debe tener solo la DAO como proposer/executor
+- Presidente debe tener rol en Tesorería para registrar pagos

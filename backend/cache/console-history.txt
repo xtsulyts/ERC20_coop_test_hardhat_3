@@ -1,0 +1,30 @@
+npx hardhat run --network localhost
+}
+  console.log(`Cuenta #${i}: ${accounts[i].address} -> ${ethers.formatUnits(balance, 18)} tokens`);
+  const balance = await contract.balanceOf(accounts[i].address);
+for (let i = 0; i < accounts.length; i++) {
+// Verificar el balance de cada cuenta
+const accounts = await ethers.getSigners();
+// Obtener todas las cuentas
+const contract = await ethers.getContractAt("CooperadoraTest", contractAddress);
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+// Conectarse al contrato
+}
+  console.log("Balance:", balance.toString());
+  const balance = await contract.balanceOf(accounts[0].address);
+  console.log("Cuenta #0:", accounts[0].address);
+  const accounts = await hre.ethers.getSigners();
+  const contract = await hre.ethers.getContractAt("CooperadoraTest", contractAddress);
+if (code !== "0x") {
+console.log("Código del contrato:", code === "0x" ? "NO EXISTE" : "EXISTE");
+const code = await hre.ethers.provider.getCode(contractAddress);
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+console.log("Código del contrato:", code === "0x" ? "NO EXISTE" : "EXISTE");
+const code = await hre.ethers.provider.getCode(contractAddress);
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+console.log("Código del contrato:", code === "0x" ? "NO EXISTE" : "EXISTE");
+const code = await ethers.provider.getCode(contractAddress);
+const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+> console.log("Código del contrato:", code === "0x" ? "NO EXISTE" : "EXISTE");
+> const code = await hre.ethers.provider.getCode(contractAddress);
+> const contractAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";onsole.log("Balance:", balance.toString());ntract address:", code);onst code = await hre.ethers.provider.getCode(0x5FbDB2315678afecb367f032d93F642f64180aa3);

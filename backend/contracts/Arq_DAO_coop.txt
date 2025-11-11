@@ -1,62 +1,103 @@
-FLUJO DE DESPLIEGUE CON TOKEN YA EXISTENTE:
+🎯 VISIÓN GENERAL
+Sistema de gobernanza descentralizado que transforma la gestión tradicional de cooperadoras escolares mediante tokens, democratizando la toma de decisiones sobre gastos según las cuotas sociales pagadas.
 
-1. ✅ TOKEN ERC20 (YA DESPLEGADO)
-   - Address: 0x...
-   - Función: Representa cuotas sociales pagadas en fiat
+🏗️ ARQUITECTURA DE 3 CAPAS
+1. CAPA DE TOKEN (COOP)
+Token ERC-20 estándar con funciones mint/burn
 
-2. 🚀 DESPLEGAR TIMELOCK
-   - Input: minDelay (ej: 86400 = 24h)
-   - Output: addressTimelock
-   - Propósito: Seguridad en ejecución
+1 cuota social = X tokens COOP
 
-3. 🚀 DESPLEGAR COOPERADORA DAO  
-   - Inputs: 
-     * addressToken (ya existe)
-     * addressTimelock (recién desplegado)
-     * votingDelay: 1 bloque
-     * votingPeriod: 50400 bloques (~1 semana)
-     * quorum: 40%
-   - Output: addressDAO
+Poder de voto proporcional a tenencia de tokens
 
-4. 🚀 DESPLEGAR TESORERIA SAFE
-   - Inputs:
-     * presidente (wallet presidente)
-     * addressDAO (recién desplegado) 
-     * gastoMaximoInicial (ej: 1 ETH en wei)
-   - Output: addressTesoreria
+Transparencia total en distribución
 
-5. ⚙️ CONFIGURACIÓN CRUCIAL (MÁS IMPORTANTE)
-   - Timelock.grantRole(PROPOSER_ROLE, addressDAO)
-   - Timelock.grantRole(EXECUTOR_ROLE, addressDAO)
-   - Timelock.revokeRole(executor, deployer) ← QUITARSE PERMISOS
+2. CAPA DE GOBERNANZA (DAO)
+Roles del Sistema:
 
-FLUJO OPERATIVO POST-DEPLOY:
-────────────────────────────
+Presidente: Gestión miembros y supervisión
 
-1. PAGO FIAT (Fuera de blockchain)
-   - Padre paga cuota en efectivo/transferencia
-   - Presidente verifica pago
+Padres: Miembros con tokens activos
 
-2. MINT TOKENS (On-chain)  
-   - SoloPresidente.mint(padreAddress, cantidadTokens)
-   - Token balance aumenta → más poder de voto
+Tesoreria: Custodia fondos reales
 
-3. CREAR PROPUESTA
-   - Presidente.proponerGasto("Compra sillas", 0.5 ETH, proveedorAddress)
-   - Se crea proposalId en la DAO
+Mecanismos de Votación:
 
-4. VOTACIÓN  
-   - Padres.votan(proposalId, true/false) con peso según tokens
-   - Período: 1 semana
+3 tipos de propuestas escaladas por monto
 
-5. EJECUCIÓN (Si aprueba)
-   - Cualquiera.ejecutarProposal(proposalId)
-   - Timelock espera 24h → Tesorería envía ETH al proveedor
+Quórum variable: 25% (menor) a 60% (mayor)
 
-CONFIGURACIÓN FINAL REQUERIDA:
-──────────────────────────────
+Mayoría requerida: 51% a 75% según importancia
 
-- Token debe tener función mint() restringida a presidente
-- Tesorería debe tener ETH para ejecutar propuestas  
-- Timelock debe tener solo la DAO como proposer/executor
-- Presidente debe tener rol en Tesorería para registrar pagos
+Período de votación: 7 días con 1 día de retraso
+
+3. CAPA DE EJECUCIÓN (VOTACIÓN)
+Contratos separados por cada propuesta
+
+Verificación en tiempo real de tenencia tokens
+
+Ejecución automática al cumplir condiciones
+
+Auditoría completa de todo el proceso
+
+🔄 FLUJO OPERATIVO COMPLETO
+FASE 1: REGISTRO
+Pago cuota social → Presidente registra padre → Mint tokens COOP
+
+FASE 2: PROPUESTA
+Padre crea propuesta → Define tipo/monto → Contrato votación desplegado
+
+FASE 3: VOTACIÓN
+Padres votan con tokens → Verificación quórum → Cálculo mayorías → Decisión
+
+FASE 4: EJECUCIÓN
+Votación exitosa → Transferencia automática → Registro inmutable
+🛡️ MECANISMOS DE SEGURIDAD
+Límites de Gasto Escalados:
+
+GASTO_MENOR: <10% presupuesto | 25% quórum | 51% mayoría
+
+GASTO_MODERADO: 10-30% presupuesto | 40% quórum | 60% mayoría
+
+GASTO_MAYOR: >30% presupuesto | 60% quórum | 75% mayoría
+
+Controles Anti-Manipulación:
+
+Un voto por dirección verificado
+
+Períodos de votación fijos
+
+Verificación continua de tenencia tokens
+
+Transparencia total en resultados
+
+📊 MODELO DE INCENTIVOS
+Para Padres:
+
+Voto proporcional al compromiso económico
+
+Transparencia total en gestión de fondos
+
+Participación directa en decisiones
+
+Para la Institución:
+
+Automatización de procesos burocráticos
+
+Reducción de conflictos por transparencia
+
+Auditoría completa e inmutable
+
+🎖️ BENEFICIOS CLAVE
+Democracia Real: 1 token = 1 voto proporcional
+
+Transparencia Total: Blockchain público verificable
+
+Eficiencia Operativa: Automatización procesos
+
+Seguridad Robusta: Múltiples capas protección
+
+Escalabilidad: Adaptable a cualquier tamaño cooperadora
+
+Tecnología: Solidity ^0.8.28 + OpenZeppelin
+Blockchain: Compatible con EVM (Ethereum, Polygon, etc.)
+Tokens: Estándar ERC-20 con governance integrado

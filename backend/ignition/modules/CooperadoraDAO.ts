@@ -1,43 +1,37 @@
 // ignition/modules/CooperadoraDAO.ts
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-/**
- * Módulo de Ignition para el despliegue completo del sistema de la Cooperadora Escolar.
- * Este módulo despliega de forma secuencial y dependiente los tres contratos principales.
- */
 const CooperadoraDAOModule = buildModule("CooperadoraDAOModule", (m) => {
   
-  // 1. PARÁMETROS CONFIGURABLES DEL DESPLIEGUE
-  // Estos valores pueden ser sobrescritos durante el despliegue usando un archivo de parámetros.
-  const tokenCap = m.getParameter("tokenCap", 1000000); // Suministro máximo del token
-  const nombreEscuela = m.getParameter("nombreEscuela", "Mi Escuela Ejemplo");
+  // Parametros
+  const nombreEscuela = m.getParameter("nombreEscuela", "Escuela Primaria Ejemplo");
   const totalPadres = m.getParameter("totalPadres", 100);
-  // Asume que el despliegue inicial utilizará la cuenta del desplegador como tesorería.
-  // En una implementación real, considera hacerla un parámetro configurable.
-  const direccionTesoreria = m.getParameter("direccionTesoreria", m.getAccount(0));
+  const direccionTesoreria = m.getParameter(
+    "direccionTesoreria", 
+    "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266"
+  );
 
-  // 2. DESPLIEGUE DEL TOKEN COOP (ERC-20)
-  const tokenCoop = m.contract("CooperadoraToken", [], {
-    // Nota: Si tu constructor de CooperadoraToken acepta argumentos (como un 'cap'),
-    // debes pasarlos en el array de arriba. El ejemplo actual asume un constructor sin argumentos.
-  });
+  // ============ VALIDACION MEJORADA ============
+  // Validar que la direccion de tesoreria no sea address(0)
+  // Convertir a string para la comparacion
+  const tesoreriaStr = direccionTesoreria.toString();
+  if (tesoreriaStr === "0x0000000000000000000000000000000000000000") {
+    throw new Error("La direccion de tesoreria no puede ser la direccion cero");
+  }
 
-  // 3. DESPLIEGUE DEL CONTRATO PRINCIPAL CooperadoraDAO
-  // Este contrato depende de la dirección del token recién desplegado.
+  // Despliegue del token
+  const tokenCoop = m.contract("CooperadoraToken");
+
+  // Despliegue del DAO
   const cooperadoraDAO = m.contract("CooperadoraDAO", [
     nombreEscuela,
-    totalPadres,
+    totalPadres, 
     direccionTesoreria,
-    tokenCoop, // Se pasa la instancia del token como dependencia
-  ]);
+    tokenCoop
+  ], {
+    id: "CooperadoraDAO"
+  });
 
-  // 4. DESPLIEGUE DEL CONTRATO VotacionPropuesta (Como Ejemplo o Proxy Factory)
-  // Nota: En tu arquitectura, `VotacionPropuesta` es creado dinámicamente por `CooperadoraDAO`.
-  // No es necesario desplegarlo aquí de forma independiente. Este paso es ilustrativo.
-  // Si necesitas una versión base o una fábrica, se desplegaría así:
-  // const votacionPropuesta = m.contract("VotacionPropuesta", [...]);
-  
-  // El módulo expone las instancias de los contratos desplegados para su uso en pruebas o interacción.
   return { tokenCoop, cooperadoraDAO };
 });
 

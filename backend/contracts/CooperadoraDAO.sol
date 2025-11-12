@@ -24,12 +24,15 @@ contract CooperadoraDAO {
 
     Cooperadora public infoCooperadora;
     address public presidente;
-    CuotaToken public tokenCuota;
+    CooperadoraTest public tokenCuota; // Cambiado a tipo correcto
     mapping(address => Padre) public padres;
-    mapping(uint256 => address) public propuestasVotacion; // proposalId => PropuestaVotacion
+    mapping(uint256 => address) public propuestasVotacion;
     uint256 public contadorPropuestas;
     uint256 public constant RETRASO_VOTACION = 1 days;
     uint256 public constant PERIODO_VOTACION = 7 days;
+
+    // Array para almacenar padres activos
+    address[] private padresActivos;
 
     event PropuestaCreada(uint256 indexed propuestaId, address contratoVotacion);
     event PadreAgregado(address indexed padre, uint256 tokens);
@@ -57,16 +60,17 @@ contract CooperadoraDAO {
         infoCooperadora.totalPadres = _totalPadres;
         infoCooperadora.tesoreria = _tesoreria;
         
-        // Usar token existente en lugar de crear uno nuevo
-        tokenCuota = CuotaToken(_tokenExistente);
+        // Usar token existente
+        tokenCuota = CooperadoraTest(_tokenExistente);
     }
 
-    // FUNCIÓN CLAVE: Presidente agrega padres después de pago fiat
+    // FUNCION CLAVE: Presidente agrega padres despues de pago fiat
     function agregarPadre(address _padre, uint256 _cantidadTokens) public soloPresidente {
         require(!padres[_padre].estaActivo, "Ya es padre");
         require(_cantidadTokens > 0, "Cantidad debe ser mayor a 0");
         
         padres[_padre].estaActivo = true;
+        padresActivos.push(_padre);
         
         // Mint tokens proporcional a cuotas pagadas
         tokenCuota.mint(_padre, _cantidadTokens);
@@ -86,7 +90,7 @@ contract CooperadoraDAO {
         require(tokenCuota.balanceOf(msg.sender) > 0, "No tiene tokens");
         require(_monto > 0, "Monto debe ser mayor a 0");
 
-        // Calcular quórum y mayoría según tipo
+        // Calcular quorum y mayoria segun tipo
         uint256 quorum;
         uint256 mayoriaRequerida;
 
@@ -96,7 +100,7 @@ contract CooperadoraDAO {
         } else if (_tipo == TipoPropuesta.GASTO_MODERADO) {
             quorum = (tokenCuota.totalSupply() * 40) / 100; // 40% tokens  
             mayoriaRequerida = 60; // 60% a favor
-        } else if (_tipo == TipoPropuesta.GASTO_MAYOR) {
+        } else { // GASTO_MAYOR
             quorum = (tokenCuota.totalSupply() * 60) / 100; // 60% tokens
             mayoriaRequerida = 75; // 75% a favor
         }
@@ -104,36 +108,35 @@ contract CooperadoraDAO {
         uint256 inicioTiempo = block.timestamp + RETRASO_VOTACION;
         uint256 finTiempo = inicioTiempo + PERIODO_VOTACION;
 
-        // Crear nuevo contrato de votación
-       VotacionPropuesta nuevaVotacion = new VotacionPropuesta(
-        _titulo,
-        _descripcion,
-        _monto,
-        _destinatario,
-        inicioTiempo,
-        finTiempo,
-        quorum,
-        mayoriaRequerida,
-        _tipo,
-        msg.sender,
-        address(this)
-    );
+        // Crear nuevo contrato de votacion
+        VotacionPropuesta nuevaVotacion = new VotacionPropuesta(
+            _titulo,
+            _descripcion,
+            _monto,
+            _destinatario,
+            inicioTiempo,
+            finTiempo,
+            quorum,
+            mayoriaRequerida,
+            _tipo,
+            msg.sender,
+            address(this)
+        );
 
-    uint256 propuestaId = contadorPropuestas++;
-    propuestasVotacion[propuestaId] = address(nuevaVotacion);
-    
-    emit PropuestaCreada(propuestaId, address(nuevaVotacion));
-    return propuestaId;
-}
+        uint256 propuestaId = contadorPropuestas++;
+        propuestasVotacion[propuestaId] = address(nuevaVotacion);
+        
+        emit PropuestaCreada(propuestaId, address(nuevaVotacion));
+        return propuestaId;
     }
 
     // Votar en una propuesta
-    function votar(uint256 _propuestaId, bool _aFavor) external soloPadre {
+    function emitirVoto(uint256 _propuestaId, bool _aFavor) external soloPadre {
         address direccionVotacion = propuestasVotacion[_propuestaId];
         require(direccionVotacion != address(0), "Propuesta no existe");
         
         uint256 poderVoto = tokenCuota.balanceOf(msg.sender);
-        PropuestaVotacion(direccionVotacion).votar(_aFavor, poderVoto);
+        VotacionPropuesta(direccionVotacion).votar(_aFavor, poderVoto);
     }
 
     // Obtener poder de voto (incluye delegaciones)
@@ -141,9 +144,8 @@ contract CooperadoraDAO {
         uint256 poderPropio = tokenCuota.balanceOf(_padre);
         
         // Sumar tokens delegados
-        for (uint256 i = 0; i < infoCooperadora.totalPadres; i++) {
-            // Nota: En implementación real usarías un array de padres
-            address delegador = obtenerPadrePorIndice(i);
+        for (uint256 i = 0; i < padresActivos.length; i++) {
+            address delegador = padresActivos[i];
             if (padres[delegador].delegarA == _padre) {
                 poderPropio += tokenCuota.balanceOf(delegador);
             }
@@ -165,37 +167,37 @@ contract CooperadoraDAO {
     }
 
     function obtenerPadresActivos() public view returns (address[] memory) {
-        // Implementación para obtener lista de padres activos
+        return padresActivos;
     }
 
-    // Función auxiliar temporal (para testing)
+    // Funcion auxiliar temporal (para testing)
     function cambiarPresidente(address _nuevoPresidente) public soloPresidente {
         address antiguoPresidente = presidente;
         presidente = _nuevoPresidente;
         emit PresidenteCambiado(antiguoPresidente, _nuevoPresidente);
     }
 
-    // Función helper (necesitarías mantener un array de padres)
+    // Funcion helper para obtener padre por indice
     function obtenerPadrePorIndice(uint256 index) internal view returns (address) {
-        // Implementación dependiente de cómo almacenes los padres
-        return address(0);
+        require(index < padresActivos.length, "Indice fuera de rango");
+        return padresActivos[index];
     }
 
     function transferirFondosPropuesta(address _destinatario, uint256 _monto) external {
-    // Verificar que quien llama es un contrato de votación válido
-    bool esVotacionValida = false;
-    for (uint256 i = 0; i < contadorPropuestas; i++) {
-        if (propuestasVotacion[i] == msg.sender) {
-            esVotacionValida = true;
-            break;
+        // Verificar que quien llama es un contrato de votacion valido
+        bool esVotacionValida = false;
+        for (uint256 i = 0; i < contadorPropuestas; i++) {
+            if (propuestasVotacion[i] == msg.sender) {
+                esVotacionValida = true;
+                break;
+            }
         }
+        require(esVotacionValida, "Solo contratos de votacion validos");
+        
+        // Transferir fondos desde tesoreria
+        (bool success, ) = infoCooperadora.tesoreria.call(
+            abi.encodeWithSignature("transfer(address,uint256)", _destinatario, _monto)
+        );
+        require(success, "Transferencia fallida");
     }
-    require(esVotacionValida, "Solo contratos de votacion validos");
-    
-    // Transferir fondos desde tesorería
-    (bool success, ) = infoCooperadora.tesoreria.call(
-        abi.encodeWithSignature("transferir(address,uint256)", _destinatario, _monto)
-    );
-    require(success, "Transferencia fallida");
 }
-

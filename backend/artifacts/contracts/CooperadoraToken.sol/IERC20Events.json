@@ -1,0 +1,39 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "IERC20Events",
+  "sourceName": "contracts/CooperadoraToken.sol",
+  "abi": [
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "from",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "to",
+          "type": "address"
+        },
+        {
+          "indexed": false,
+          "internalType": "uint256",
+          "name": "value",
+          "type": "uint256"
+        }
+      ],
+      "name": "Transfer",
+      "type": "event"
+    }
+  ],
+  "bytecode": "0x",
+  "deployedBytecode": "0x",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/CooperadoraToken.sol",
+  "buildInfoId": "solc-0_8_28-76b17ef7eb95d01fcec6affd7e1b8d7306fbaf88"
+}
